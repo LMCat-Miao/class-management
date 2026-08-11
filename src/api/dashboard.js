@@ -1,8 +1,8 @@
-import request from "@/uitls/request"
+import request from '@/utils/request'
 
-export function getDashboardData(){
-    return request({
-        url:'/dashboard',
-        method:'get'
-    })
+export function getDashboardData() {
+  return request({
+    url: '/dashboard',
+    method: 'get'
+  })
 }

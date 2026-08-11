@@ -1,27 +1,29 @@
-import {createRouter,createWebHistory} from "vue-router"
-import Login from "@/views/Login.vue"
-import Layout from "@/layouts/Layout.vue"
-//创建路由
+import { createRouter, createWebHistory } from 'vue-router'
+import Layout from '@/layouts/Layout.vue'
+
 const router = createRouter({
-    history: createWebHistory(),
-    routes: [
-        // 定义路由规则
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/login',
+      component: () => import('@/views/Login.vue')
+    },
+    {
+      path: '/',
+      component: Layout,
+      redirect: '/dashboard',
+      children: [
         {
-            path:'/',
-            redirect:'/login'
+          path: 'dashboard',
+          component: () => import('@/views/Dashboard/index.vue')
         },
         {
-            path: '/login',
-            component: () => import('@/views/Login.vue')
-        },
-        {
-            path: '/dashboard',
-            component: () => import('@/views/Dashboard.vue')
-        },
-        {
-            path:'/course',
-            component: () => import('@/views/Course.vue')
+          path: 'course',
+          component: () => import('@/views/Course/index.vue')
         }
-    ]
+      ]
+    }
+  ]
 })
+
 export default router

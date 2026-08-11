@@ -1,44 +1,43 @@
 import request from '@/utils/request'
+import { isMockEnabled, mockGetCourseList } from '@/mock'
 
-//获取课程列表
-export function getCourseList(params){
-    return request({
-        url:'/course/list',
-        method:'GET',
-        params
-    })
+export function getCourseList(params) {
+  if (isMockEnabled()) {
+    return mockGetCourseList(params)
+  }
+  return request({
+    url: '/course/list',
+    method: 'GET',
+    params
+  })
 }
 
-//获取课程详细
-export function getCourseDetial(id){
-    return ({
-        url:`/course/${id}`,
-        method:'GET',
-    })
-} 
-
-//新增课程
-export function createCourse(data){
-    return({
-        url:'/course',
-        method:'POST',
-        data
-    })
+export function getCourseDetail(id) {
+  return request({
+    url: `/course/${id}`,
+    method: 'GET'
+  })
 }
 
-//修改课程
-export function updataCourse(id,data){
-    return({
-        url:`/course/${id}`,
-        method:'PUT',
-        data
-    })
+export function createCourse(data) {
+  return request({
+    url: '/course',
+    method: 'POST',
+    data
+  })
 }
 
-//删除课程
-export function deleteCourse(id){
-    return ({
-        url:`/course/${id}`,
-        method:'DELETE'
-    })
+export function updateCourse(id, data) {
+  return request({
+    url: `/course/${id}`,
+    method: 'PUT',
+    data
+  })
+}
+
+export function deleteCourse(id) {
+  return request({
+    url: `/course/${id}`,
+    method: 'DELETE'
+  })
 }
