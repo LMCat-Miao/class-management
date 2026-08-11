@@ -2,23 +2,34 @@
   <div class="header">
     <h2>AI课程管理平台</h2>
     <div class="header-right">
-      <span>{{ userStore.userInfo?.username || '用户' }}</span>
+      <span>{{ userStore.nickname }}</span>
+      <el-tag size="small" type="info">{{ roleLabel }}</el-tag>
       <el-button type="primary" link @click="logout">退出登录</el-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useUserStore } from '@/stores/user.js'
+import { computed } from 'vue'
+import { useUserStore } from '@/stores/user'
+import { usePermissionStore } from '@/stores/permission'
 import { useRouter } from 'vue-router'
-import { removeToken } from '@/utils/auth.js'
+import { resetRouter } from '@/router'
+import { ROLE_LABELS } from '@/constants/roles'
 
 const userStore = useUserStore()
+const permissionStore = usePermissionStore()
 const router = useRouter()
 
-const logout = () => {
-  userStore.clearUserInfo()
-  removeToken()
+const roleLabel = computed(() => {
+  const role = userStore.roles[0]
+  return ROLE_LABELS[role] || role || '用户'
+})
+
+const logout = async () => {
+  await userStore.logout()
+  permissionStore.reset()
+  resetRouter()
   router.push('/login')
 }
 </script>

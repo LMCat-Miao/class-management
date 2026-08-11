@@ -1,19 +1,46 @@
-//封装token
+const ACCESS_TOKEN_KEY = 'access_token'
+const REFRESH_TOKEN_KEY = 'refresh_token'
+const LEGACY_TOKEN_KEY = 'token'
 
-//统一管理key取名token
-const TOKEN_KEY = 'token'
+// 清理历史 localStorage 登录态，避免打开站点直接进入首页
+;['access_token', 'refresh_token', 'token', 'mock_username'].forEach((key) => {
+  localStorage.removeItem(key)
+})
 
-//获取token,获取登录凭证
-export function getToken(){
-    return localStorage.getItem(TOKEN_KEY)
+function storage() {
+  return sessionStorage
 }
 
-//保存token,保存登录凭证
-export function setToken(token){
-    return localStorage.setItem(TOKEN_KEY,token)
+export function getToken() {
+  return storage().getItem(ACCESS_TOKEN_KEY)
 }
 
-//删除token，删除登录凭证
-export function removeToken(){
-    return localStorage.removeItem(TOKEN_KEY)
+export function setToken(token) {
+  storage().setItem(ACCESS_TOKEN_KEY, token)
+}
+
+export function removeToken() {
+  storage().removeItem(ACCESS_TOKEN_KEY)
+  localStorage.removeItem(ACCESS_TOKEN_KEY)
+  localStorage.removeItem(LEGACY_TOKEN_KEY)
+}
+
+export function getRefreshToken() {
+  return storage().getItem(REFRESH_TOKEN_KEY)
+}
+
+export function setRefreshToken(token) {
+  storage().setItem(REFRESH_TOKEN_KEY, token)
+}
+
+export function removeRefreshToken() {
+  storage().removeItem(REFRESH_TOKEN_KEY)
+  localStorage.removeItem(REFRESH_TOKEN_KEY)
+}
+
+export function clearAuth() {
+  removeToken()
+  removeRefreshToken()
+  sessionStorage.removeItem('mock_username')
+  localStorage.removeItem('mock_username')
 }

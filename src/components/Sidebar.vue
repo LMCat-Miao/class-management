@@ -1,9 +1,6 @@
 <template>
   <div class="sidebar">
-    <el-menu
-      :default-active="activeMenu"
-      router
-    >
+    <el-menu :default-active="activeMenu" router>
       <el-menu-item
         v-for="item in menus"
         :key="item.path"
@@ -18,12 +15,17 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { usePermissionStore } from '@/stores/permission.js'
+import { usePermissionStore } from '@/stores/permission'
 
 const route = useRoute()
 const permissionStore = usePermissionStore()
 const menus = computed(() => permissionStore.menus)
-const activeMenu = computed(() => route.path)
+const activeMenu = computed(() => {
+  if (route.path.startsWith('/course/')) return '/course'
+  if (route.path.startsWith('/teacher/')) return '/teacher'
+  if (route.path.startsWith('/student/')) return '/student'
+  return route.path
+})
 </script>
 
 <style scoped>

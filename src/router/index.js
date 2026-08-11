@@ -1,29 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Layout from '@/layouts/Layout.vue'
+import { constantRoutes } from './routes'
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    {
-      path: '/login',
-      component: () => import('@/views/Login.vue')
-    },
-    {
-      path: '/',
-      component: Layout,
-      redirect: '/dashboard',
-      children: [
-        {
-          path: 'dashboard',
-          component: () => import('@/views/Dashboard/index.vue')
-        },
-        {
-          path: 'course',
-          component: () => import('@/views/Course/index.vue')
-        }
-      ]
-    }
-  ]
+  routes: [...constantRoutes]
 })
+
+const whiteRouteNames = new Set(['Login', 'Root'])
+
+export function resetRouter() {
+  router.getRoutes().forEach((route) => {
+    if (route.name && !whiteRouteNames.has(route.name)) {
+      router.removeRoute(route.name)
+    }
+  })
+}
 
 export default router

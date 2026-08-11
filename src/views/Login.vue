@@ -24,24 +24,32 @@
         </el-button>
       </el-form-item>
     </el-form>
-    <p v-if="isMock" class="mock-tip">
-      当前为演示模式，输入任意账号密码即可进入<br />
-      推荐：admin / 123456
-    </p>
+
+    <div v-if="isMock" class="mock-tip">
+      <p>演示模式账号：</p>
+      <p>
+        管理员：
+        <el-button link type="primary" @click="fillAccount('admin')">admin / 123456</el-button>
+      </p>
+      <p>
+        教师：
+        <el-button link type="primary" @click="fillAccount('teacher')">teacher / 123456</el-button>
+      </p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { login } from '@/api/user.js'
-import { setToken } from '@/utils/auth.js'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user.js'
+import { useUserStore } from '@/stores/user'
+import { usePermissionStore } from '@/stores/permission'
 import { isMockEnabled } from '@/mock'
 
 const router = useRouter()
 const userStore = useUserStore()
+const permissionStore = usePermissionStore()
 const loading = ref(false)
 const isMock = isMockEnabled()
 
@@ -49,6 +57,11 @@ const form = reactive({
   username: isMock ? 'admin' : '',
   password: isMock ? '123456' : ''
 })
+
+function fillAccount(type) {
+  form.username = type
+  form.password = '123456'
+}
 
 const handleLogin = async () => {
   if (!form.username || !form.password) {
@@ -58,9 +71,8 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    const res = await login(form)
-    setToken(res.data.token)
-    userStore.setUserInfo(res.data.userInfo)
+    await userStore.login(form)
+    permissionStore.reset()
     ElMessage.success('登录成功')
     router.push('/dashboard')
   } catch (error) {
@@ -88,10 +100,14 @@ const handleLogin = async () => {
 }
 
 .mock-tip {
-  margin: 8px 0 0;
+  margin-top: 8px;
   text-align: center;
   font-size: 13px;
-  line-height: 1.6;
   color: #909399;
+  line-height: 1.8;
+}
+
+.mock-tip p {
+  margin: 0;
 }
 </style>

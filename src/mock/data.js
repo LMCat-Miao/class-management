@@ -1,0 +1,394 @@
+import { ROLES } from '@/constants/roles'
+import {
+  ADMIN_PERMISSIONS,
+  TEACHER_PERMISSIONS
+} from '@/constants/permissions'
+
+export const teachers = [
+  {
+    id: 1,
+    name: '张老师',
+    avatar: '',
+    phone: '13800000001',
+    email: 'zhang@example.com',
+    title: '高级讲师',
+    courseCount: 3,
+    studentCount: 860,
+    avgCompletion: 82,
+    status: 1,
+    courseIds: [1, 5, 6]
+  },
+  {
+    id: 2,
+    name: '李老师',
+    avatar: '',
+    phone: '13800000002',
+    email: 'li@example.com',
+    title: '副教授',
+    courseCount: 2,
+    studentCount: 520,
+    avgCompletion: 78,
+    status: 1,
+    courseIds: [2, 4]
+  },
+  {
+    id: 3,
+    name: '王老师',
+    avatar: '',
+    phone: '13800000003',
+    email: 'wang@example.com',
+    title: '讲师',
+    courseCount: 1,
+    studentCount: 320,
+    avgCompletion: 75,
+    status: 1,
+    courseIds: [3]
+  },
+  {
+    id: 4,
+    name: '赵老师',
+    avatar: '',
+    phone: '13800000004',
+    email: 'zhao@example.com',
+    title: '助教',
+    courseCount: 1,
+    studentCount: 180,
+    avgCompletion: 70,
+    status: 0,
+    courseIds: [7]
+  }
+]
+
+export const courses = [
+  {
+    id: 1,
+    name: 'Vue3企业级开发',
+    cover: 'https://picsum.photos/seed/vue3/160/90',
+    category: '前端',
+    teacherId: 1,
+    teacher: '张老师',
+    difficulty: '中级',
+    duration: 36,
+    studentCount: 328,
+    learnCount: 3000,
+    completionRate: 82,
+    status: 1,
+    intro: '系统讲解 Vue3 Composition API、Pinia、Router、Axios 企业级实践。',
+    createdAt: '2025-01-12',
+    chapters: [
+      { id: 1, title: '第一章 Vue3基础' },
+      { id: 2, title: '第二章 Composition API' },
+      { id: 3, title: '第三章 Pinia' },
+      { id: 4, title: '第四章 Router' },
+      { id: 5, title: '第五章 Axios' }
+    ]
+  },
+  {
+    id: 2,
+    name: 'AI大模型应用开发',
+    cover: 'https://picsum.photos/seed/ai/160/90',
+    category: 'AI',
+    teacherId: 2,
+    teacher: '李老师',
+    difficulty: '高级',
+    duration: 48,
+    studentCount: 256,
+    learnCount: 5000,
+    completionRate: 76,
+    status: 1,
+    intro: '覆盖 Prompt、RAG、Agent 与企业落地案例。',
+    createdAt: '2025-02-08',
+    chapters: [
+      { id: 1, title: '第一章 大模型概览' },
+      { id: 2, title: '第二章 Prompt Engineering' },
+      { id: 3, title: '第三章 RAG 实战' }
+    ]
+  },
+  {
+    id: 3,
+    name: '算法与数据结构',
+    cover: 'https://picsum.photos/seed/algo/160/90',
+    category: '算法',
+    teacherId: 3,
+    teacher: '王老师',
+    difficulty: '中级',
+    duration: 40,
+    studentCount: 412,
+    learnCount: 4000,
+    completionRate: 71,
+    status: 1,
+    intro: '常见数据结构与算法题型精讲。',
+    createdAt: '2025-03-01',
+    chapters: [
+      { id: 1, title: '第一章 复杂度分析' },
+      { id: 2, title: '第二章 数组与链表' },
+      { id: 3, title: '第三章 树与图' }
+    ]
+  },
+  {
+    id: 4,
+    name: 'Python数据分析',
+    cover: 'https://picsum.photos/seed/python/160/90',
+    category: 'Python',
+    teacherId: 2,
+    teacher: '李老师',
+    difficulty: '初级',
+    duration: 28,
+    studentCount: 198,
+    learnCount: 2800,
+    completionRate: 80,
+    status: 0,
+    intro: 'Pandas、NumPy 与可视化入门。',
+    createdAt: '2025-03-20',
+    chapters: [
+      { id: 1, title: '第一章 Python基础' },
+      { id: 2, title: '第二章 Pandas' }
+    ]
+  },
+  {
+    id: 5,
+    name: '前端工程化实践',
+    cover: 'https://picsum.photos/seed/fe/160/90',
+    category: '前端',
+    teacherId: 1,
+    teacher: '张老师',
+    difficulty: '高级',
+    duration: 32,
+    studentCount: 166,
+    learnCount: 2200,
+    completionRate: 74,
+    status: 1,
+    intro: 'Vite、CI/CD、组件库与性能优化。',
+    createdAt: '2025-04-05',
+    chapters: [
+      { id: 1, title: '第一章 工程化概览' },
+      { id: 2, title: '第二章 构建与部署' }
+    ]
+  },
+  {
+    id: 6,
+    name: 'JavaScript进阶',
+    cover: 'https://picsum.photos/seed/js/160/90',
+    category: '前端',
+    teacherId: 1,
+    teacher: '张老师',
+    difficulty: '中级',
+    duration: 30,
+    studentCount: 366,
+    learnCount: 3500,
+    completionRate: 85,
+    status: 1,
+    intro: '闭包、原型、异步与设计模式。',
+    createdAt: '2025-05-10',
+    chapters: [
+      { id: 1, title: '第一章 作用域与闭包' },
+      { id: 2, title: '第二章 异步编程' }
+    ]
+  },
+  {
+    id: 7,
+    name: 'Java企业开发',
+    cover: 'https://picsum.photos/seed/java/160/90',
+    category: 'Java',
+    teacherId: 4,
+    teacher: '赵老师',
+    difficulty: '中级',
+    duration: 45,
+    studentCount: 180,
+    learnCount: 1900,
+    completionRate: 68,
+    status: 1,
+    intro: 'Spring Boot 与微服务入门。',
+    createdAt: '2025-06-01',
+    chapters: [
+      { id: 1, title: '第一章 Spring Boot' },
+      { id: 2, title: '第二章 数据访问' }
+    ]
+  },
+  {
+    id: 8,
+    name: '机器学习基础',
+    cover: 'https://picsum.photos/seed/ml/160/90',
+    category: 'AI',
+    teacherId: 2,
+    teacher: '李老师',
+    difficulty: '中级',
+    duration: 42,
+    studentCount: 240,
+    learnCount: 4200,
+    completionRate: 73,
+    status: 1,
+    intro: '监督学习、特征工程与模型评估。',
+    createdAt: '2025-07-15',
+    chapters: [
+      { id: 1, title: '第一章 机器学习概览' },
+      { id: 2, title: '第二章 回归与分类' }
+    ]
+  }
+]
+
+export const students = [
+  {
+    id: 1,
+    name: '张三',
+    avatar: '',
+    studentNo: '2025001',
+    className: '前端一班',
+    phone: '13900000001',
+    learnCourseCount: 12,
+    finishCourseCount: 8,
+    progress: 76,
+    status: 1,
+    registeredAt: '2025-01-20',
+    recentCourses: ['Vue3企业级开发', 'AI大模型应用开发', 'Python数据分析'],
+    avgCompletion: 76
+  },
+  {
+    id: 2,
+    name: '李四',
+    avatar: '',
+    studentNo: '2025002',
+    className: 'AI一班',
+    phone: '13900000002',
+    learnCourseCount: 8,
+    finishCourseCount: 5,
+    progress: 68,
+    status: 1,
+    registeredAt: '2025-02-11',
+    recentCourses: ['机器学习基础', 'AI大模型应用开发'],
+    avgCompletion: 68
+  },
+  {
+    id: 3,
+    name: '王五',
+    avatar: '',
+    studentNo: '2025003',
+    className: '算法一班',
+    phone: '13900000003',
+    learnCourseCount: 6,
+    finishCourseCount: 3,
+    progress: 55,
+    status: 1,
+    registeredAt: '2025-03-05',
+    recentCourses: ['算法与数据结构', 'JavaScript进阶'],
+    avgCompletion: 55
+  },
+  {
+    id: 4,
+    name: '赵六',
+    avatar: '',
+    studentNo: '2025004',
+    className: 'Java一班',
+    phone: '13900000004',
+    learnCourseCount: 4,
+    finishCourseCount: 1,
+    progress: 40,
+    status: 0,
+    registeredAt: '2025-04-18',
+    recentCourses: ['Java企业开发'],
+    avgCompletion: 40
+  },
+  {
+    id: 5,
+    name: '钱七',
+    avatar: '',
+    studentNo: '2025005',
+    className: '前端二班',
+    phone: '13900000005',
+    learnCourseCount: 10,
+    finishCourseCount: 7,
+    progress: 81,
+    status: 1,
+    registeredAt: '2025-05-02',
+    recentCourses: ['前端工程化实践', 'Vue3企业级开发', 'JavaScript进阶'],
+    avgCompletion: 81
+  }
+]
+
+export const resources = [
+  {
+    id: 1,
+    name: 'Vue3课程讲义.pdf',
+    type: 'PDF',
+    courseId: 1,
+    courseName: 'Vue3企业级开发',
+    size: '2.4MB',
+    uploader: '张老师',
+    uploadedAt: '2025-08-01 10:20',
+    status: 1
+  },
+  {
+    id: 2,
+    name: 'AI应用案例.pptx',
+    type: 'PPT',
+    courseId: 2,
+    courseName: 'AI大模型应用开发',
+    size: '8.1MB',
+    uploader: '李老师',
+    uploadedAt: '2025-08-03 14:10',
+    status: 1
+  },
+  {
+    id: 3,
+    name: '算法练习题.docx',
+    type: 'Word',
+    courseId: 3,
+    courseName: '算法与数据结构',
+    size: '1.2MB',
+    uploader: '王老师',
+    uploadedAt: '2025-08-05 09:40',
+    status: 1
+  },
+  {
+    id: 4,
+    name: '工程化演示视频.mp4',
+    type: '视频',
+    courseId: 5,
+    courseName: '前端工程化实践',
+    size: '120MB',
+    uploader: '张老师',
+    uploadedAt: '2025-08-08 16:00',
+    status: 1
+  }
+]
+
+export const users = {
+  admin: {
+    id: 1,
+    username: 'admin',
+    nickname: '系统管理员',
+    role: ROLES.ADMIN,
+    roles: [ROLES.ADMIN],
+    permissions: ADMIN_PERMISSIONS
+  },
+  teacher: {
+    id: 2,
+    username: 'teacher',
+    nickname: '张老师',
+    role: ROLES.TEACHER,
+    roles: [ROLES.TEACHER],
+    permissions: TEACHER_PERMISSIONS,
+    teacherId: 1
+  }
+}
+
+let courseSeq = courses.length + 1
+let teacherSeq = teachers.length + 1
+let studentSeq = students.length + 1
+let resourceSeq = resources.length + 1
+
+export function nextCourseId() {
+  return courseSeq++
+}
+
+export function nextTeacherId() {
+  return teacherSeq++
+}
+
+export function nextStudentId() {
+  return studentSeq++
+}
+
+export function nextResourceId() {
+  return resourceSeq++
+}
