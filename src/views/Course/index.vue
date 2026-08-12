@@ -113,7 +113,7 @@
 
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import BaseTable from '@/components/BaseTable.vue'
 import CourseForm from './components/CourseForm.vue'
@@ -123,6 +123,7 @@ import {
   updateCourseStatus
 } from '@/api/course'
 
+const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const list = ref([])
@@ -219,7 +220,17 @@ async function handleDelete(row) {
   getList()
 }
 
-onMounted(getList)
+function tryOpenCreateFromAi() {
+  if (route.query.openCreate === '1') {
+    openCreate()
+    router.replace({ path: '/course' })
+  }
+}
+
+onMounted(() => {
+  getList()
+  tryOpenCreateFromAi()
+})
 </script>
 
 <style scoped>

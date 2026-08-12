@@ -46,17 +46,51 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="课程简介" prop="intro">
-        <el-input
-          v-model="form.intro"
-          type="textarea"
-          :rows="4"
-          placeholder="请输入课程简介"
-        />
+        <div class="intro-box">
+          <el-input
+            v-model="form.intro"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入课程简介"
+          />
+          <el-button
+            v-permission="'ai:intro'"
+            class="ai-btn"
+            type="primary"
+            plain
+            :loading="aiLoading"
+            @click="openAiDialog"
+          >
+            AI 生成课程简介
+          </el-button>
+        </div>
       </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="emit('update:modelValue', false)">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="submit">确定</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="aiVisible" title="AI 生成课程简介" width="480px" append-to-body>
+    <el-form label-width="80px">
+      <el-form-item label="关键词">
+        <el-select
+          v-model="aiKeywords"
+          multiple
+          filterable
+          allow-create
+          default-first-option
+          placeholder="输入后回车添加"
+          style="width: 100%"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="aiVisible = false">取消</el-button>
+      <el-button type="primary" :loading="aiLoading" @click="handleAiGenerate">
+        开始生成
+      </el-button>
     </template>
   </el-dialog>
 </template>
@@ -65,6 +99,8 @@
 import { reactive, ref, watch } from 'vue'
 import { createCourse, updateCourse } from '@/api/course'
 import { getTeacherList } from '@/api/teacher'
+import { generateIntro } from '@/api/ai'
+import { AI_INTRO_DRAFT_KEY } from '@/constants/ai'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
@@ -79,6 +115,9 @@ const emit = defineEmits(['update:modelValue', 'success'])
 
 const formRef = ref()
 const submitting = ref(false)
+const aiLoading = ref(false)
+const aiVisible = ref(false)
+const aiKeywords = ref([])
 const teachers = ref([])
 const categories = ['前端', 'AI', 'Python', '算法', 'Java']
 const isEdit = ref(false)
@@ -113,6 +152,21 @@ function resetForm() {
   })
 }
 
+function applyAiDraft() {
+  const raw = sessionStorage.getItem(AI_INTRO_DRAFT_KEY)
+  if (!raw) return
+  try {
+    const draft = JSON.parse(raw)
+    if (draft.name) form.name = draft.name
+    if (draft.category) form.category = draft.category
+    if (draft.intro) form.intro = draft.intro
+    sessionStorage.removeItem(AI_INTRO_DRAFT_KEY)
+    ElMessage.success('已填入 AI 生成的课程简介')
+  } catch {
+    sessionStorage.removeItem(AI_INTRO_DRAFT_KEY)
+  }
+}
+
 watch(
   () => props.modelValue,
   async (visible) => {
@@ -134,9 +188,37 @@ watch(
     } else {
       isEdit.value = false
       resetForm()
+      applyAiDraft()
     }
   }
 )
+
+function openAiDialog() {
+  if (!form.name.trim()) {
+    ElMessage.warning('请先填写课程名称')
+    return
+  }
+  aiKeywords.value = form.category ? [form.category] : []
+  aiVisible.value = true
+}
+
+async function handleAiGenerate() {
+  aiLoading.value = true
+  try {
+    const res = await generateIntro({
+      name: form.name,
+      keywords: aiKeywords.value,
+      category: form.category
+    })
+    form.intro = res.data.intro
+    aiVisible.value = false
+    ElMessage.success('简介已生成')
+  } catch (error) {
+    ElMessage.error(error.message || '生成失败')
+  } finally {
+    aiLoading.value = false
+  }
+}
 
 async function submit() {
   await formRef.value.validate()
@@ -158,3 +240,16 @@ async function submit() {
   }
 }
 </script>
+
+<style scoped>
+.intro-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-btn {
+  align-self: flex-start;
+}
+</style>

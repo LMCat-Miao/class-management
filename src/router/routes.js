@@ -95,6 +95,16 @@ export const asyncRoutes = [
           menu: true,
           roles: [ROLES.ADMIN, ROLES.TEACHER]
         }
+      },
+      {
+        path: 'ai-assistant',
+        name: 'AiAssistant',
+        component: () => import('@/views/AiAssistant/index.vue'),
+        meta: {
+          title: 'AI课程助手',
+          menu: true,
+          roles: [ROLES.ADMIN, ROLES.TEACHER]
+        }
       }
     ]
   },

@@ -19,7 +19,11 @@ export const PERMISSIONS = {
   RESOURCE_UPLOAD: 'resource:upload',
   RESOURCE_DELETE: 'resource:delete',
   // dashboard
-  DASHBOARD_VIEW: 'dashboard:view'
+  DASHBOARD_VIEW: 'dashboard:view',
+  // AI assistant
+  AI_INTRO: 'ai:intro',
+  AI_PARSE: 'ai:parse',
+  AI_QUIZ: 'ai:quiz'
 }
 
 export const ADMIN_PERMISSIONS = Object.values(PERMISSIONS)
@@ -30,5 +34,8 @@ export const TEACHER_PERMISSIONS = [
   PERMISSIONS.STUDENT_VIEW,
   PERMISSIONS.STUDENT_EDIT,
   PERMISSIONS.RESOURCE_VIEW,
-  PERMISSIONS.RESOURCE_UPLOAD
+  PERMISSIONS.RESOURCE_UPLOAD,
+  PERMISSIONS.AI_INTRO,
+  PERMISSIONS.AI_PARSE,
+  PERMISSIONS.AI_QUIZ
 ]
