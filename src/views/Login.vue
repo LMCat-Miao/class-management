@@ -25,8 +25,8 @@
       </el-form-item>
     </el-form>
 
-    <div v-if="isMock" class="mock-tip">
-      <p>演示模式账号：</p>
+    <div class="mock-tip">
+      <p>{{ isMock ? '演示 Mock 账号：' : '后端演示账号：' }}</p>
       <p>
         管理员：
         <el-button link type="primary" @click="fillAccount('admin')">admin / 123456</el-button>

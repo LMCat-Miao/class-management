@@ -1,3 +1,4 @@
+import type { RouteRecordRaw } from 'vue-router'
 import Layout from '@/layouts/Layout.vue'
 import { ROLES } from '@/constants/roles'
 
@@ -6,7 +7,7 @@ import { ROLES } from '@/constants/roles'
  * meta.roles: 可访问角色
  * meta.title / meta.menu: 侧边栏展示
  */
-export const asyncRoutes = [
+export const asyncRoutes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Layout',
@@ -115,7 +116,7 @@ export const asyncRoutes = [
   }
 ]
 
-export const constantRoutes = [
+export const constantRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'Login',

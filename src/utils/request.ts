@@ -1,13 +1,15 @@
 import axios from 'axios'
-import { getToken, clearAuth } from '@/utils/auth.js'
+import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import { getToken, clearAuth } from '@/utils/auth'
+import type { ApiResult } from '@/types/api'
 
-const request = axios.create({
+const request: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 15000
 })
 
 request.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = getToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -19,13 +21,13 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   (response) => {
-    const res = response.data
-    // 统一业务约定：{ code, data, message }
+    const res = response.data as ApiResult | unknown
     if (res && typeof res === 'object' && 'code' in res) {
-      if (res.code === 0 || res.code === 200) {
-        return res
+      const body = res as ApiResult
+      if (body.code === 0 || body.code === 200) {
+        return body
       }
-      return Promise.reject(new Error(res.message || '请求失败'))
+      return Promise.reject(new Error(body.message || '请求失败'))
     }
     return res
   },

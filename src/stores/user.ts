@@ -6,9 +6,16 @@ import {
   clearAuth,
   getToken
 } from '@/utils/auth'
+import type { LoginForm, UserInfo } from '@/types/api'
+
+interface UserState {
+  userInfo: UserInfo | null
+  roles: string[]
+  permissions: string[]
+}
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
+  state: (): UserState => ({
     userInfo: null,
     roles: [],
     permissions: []
@@ -17,24 +24,24 @@ export const useUserStore = defineStore('user', {
     username: (state) => state.userInfo?.username || '',
     nickname: (state) =>
       state.userInfo?.nickname || state.userInfo?.username || '用户',
-    hasPermission: (state) => (code) => {
+    hasPermission: (state) => (code?: string | string[]) => {
       if (!code) return true
       const codes = Array.isArray(code) ? code : [code]
       return codes.some((item) => state.permissions.includes(item))
     }
   },
   actions: {
-    async login(form) {
+    async login(form: LoginForm) {
       const res = await loginApi(form)
       const data = res.data
-      setToken(data.accessToken || data.token)
+      setToken(data.accessToken || data.token || '')
       if (data.refreshToken) setRefreshToken(data.refreshToken)
       sessionStorage.setItem('mock_username', form.username)
       this.setProfile(data.userInfo)
       return data
     },
-    setProfile(info) {
-      this.userInfo = info
+    setProfile(info: UserInfo | null | undefined) {
+      this.userInfo = info || null
       this.roles = info?.roles || (info?.role ? [info.role] : [])
       this.permissions = info?.permissions || []
     },

@@ -25,7 +25,6 @@ router.beforeEach(async (to) => {
           : [userStore.userInfo?.role || 'admin']
         permissionStore.generateRoutes(roles)
 
-        // 未登录占位根路径已被替换；访问 / 时进入首页
         if (to.path === '/') {
           return '/dashboard'
         }
@@ -45,7 +44,6 @@ router.beforeEach(async (to) => {
     return true
   }
 
-  // 未登录：清理动态路由痕迹，统一进登录页
   if (permissionStore.isRoutesAdded) {
     permissionStore.reset()
     resetRouter()

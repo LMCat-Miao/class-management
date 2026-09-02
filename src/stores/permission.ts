@@ -1,18 +1,27 @@
 import { defineStore } from 'pinia'
+import type { RouteRecordRaw } from 'vue-router'
 import router from '@/router'
 import { asyncRoutes } from '@/router/routes'
 import { ROLES } from '@/constants/roles'
 
-function hasRouteRole(route, roles) {
-  const allow = route.meta?.roles
+export interface MenuItem {
+  name: string
+  path: string
+}
+
+function hasRouteRole(route: RouteRecordRaw, roles: string[]): boolean {
+  const allow = route.meta?.roles as string[] | undefined
   if (!allow || !allow.length) return true
   return roles.some((role) => allow.includes(role))
 }
 
-function filterAsyncRoutes(routes, roles) {
-  const result = []
+function filterAsyncRoutes(
+  routes: RouteRecordRaw[],
+  roles: string[]
+): RouteRecordRaw[] {
+  const result: RouteRecordRaw[] = []
   routes.forEach((route) => {
-    const item = { ...route }
+    const item: RouteRecordRaw = { ...route }
     if (hasRouteRole(item, roles)) {
       if (item.children) {
         item.children = filterAsyncRoutes(item.children, roles)
@@ -23,14 +32,19 @@ function filterAsyncRoutes(routes, roles) {
   return result
 }
 
-function buildMenus(routes, roles) {
-  const menus = []
+function buildMenus(routes: RouteRecordRaw[], roles: string[]): MenuItem[] {
+  const menus: MenuItem[] = []
   routes.forEach((route) => {
     if (route.children?.length) {
       route.children.forEach((child) => {
         if (!child.meta?.menu) return
+        const menuTitle = child.meta.menuTitle as
+          | Record<string, string>
+          | undefined
         const title =
-          child.meta.menuTitle?.[roles[0]] || child.meta.title || child.name
+          menuTitle?.[roles[0]] ||
+          (child.meta.title as string) ||
+          String(child.name)
         menus.push({
           name: title,
           path: child.path.startsWith('/') ? child.path : `/${child.path}`
@@ -41,15 +55,20 @@ function buildMenus(routes, roles) {
   return menus
 }
 
+interface PermissionState {
+  menus: MenuItem[]
+  routes: RouteRecordRaw[]
+  isRoutesAdded: boolean
+}
+
 export const usePermissionStore = defineStore('permission', {
-  state: () => ({
+  state: (): PermissionState => ({
     menus: [],
     routes: [],
     isRoutesAdded: false
   }),
   actions: {
-    generateRoutes(roles = [ROLES.ADMIN]) {
-      // 登录后移除「根路径 -> 登录页」的占位路由，再注册业务 Layout
+    generateRoutes(roles: string[] = [ROLES.ADMIN]) {
       if (router.hasRoute('Root')) {
         router.removeRoute('Root')
       }
@@ -65,7 +84,6 @@ export const usePermissionStore = defineStore('permission', {
       this.menus = []
       this.routes = []
       this.isRoutesAdded = false
-      // 退出后恢复根路径到登录页
       if (!router.hasRoute('Root')) {
         router.addRoute({
           path: '/',
