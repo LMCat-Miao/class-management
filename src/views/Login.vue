@@ -85,25 +85,29 @@ const handleLogin = async () => {
 
 <style scoped>
 .login {
-  max-width: 400px;
-  margin: 120px auto;
-  padding: 32px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  max-width: 420px;
+  margin: 100px auto;
+  padding: 36px 32px;
+  background: var(--cm-surface);
+  border-radius: var(--cm-radius);
+  border: 1px solid var(--cm-border);
+  box-shadow: var(--cm-shadow);
 }
 
 .login h2 {
-  margin: 0 0 24px;
+  margin: 0 0 28px;
   text-align: center;
   font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--cm-text);
 }
 
 .mock-tip {
   margin-top: 8px;
   text-align: center;
   font-size: 13px;
-  color: #909399;
+  color: var(--cm-text-secondary);
   line-height: 1.8;
 }
 

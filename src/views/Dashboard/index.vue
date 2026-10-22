@@ -167,16 +167,30 @@ onBeforeUnmount(() => {
   gap: 16px;
 }
 
+.cards :deep(.el-card) {
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  box-shadow: var(--cm-shadow-sm);
+}
+
 .card-label {
-  color: #909399;
-  font-size: 14px;
+  color: var(--cm-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .card-value {
   margin-top: 8px;
   font-size: 28px;
-  font-weight: 600;
-  color: #303133;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--cm-text);
+}
+
+.chart-card {
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  box-shadow: var(--cm-shadow-sm);
 }
 
 .chart-row {

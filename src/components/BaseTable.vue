@@ -1,5 +1,11 @@
 <template>
-  <el-table :data="data" v-loading="loading" border stripe>
+  <el-table
+    class="cm-table"
+    :data="data"
+    v-loading="loading"
+    :stripe="false"
+    :border="false"
+  >
     <el-table-column
       v-for="column in columns"
       :key="column.prop || column.label"

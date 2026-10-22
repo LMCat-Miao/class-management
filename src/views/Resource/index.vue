@@ -220,24 +220,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  background: #fff;
-  padding: 16px;
-  border-radius: 4px;
-}
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.page-header h2 {
-  margin: 0;
-  font-size: 18px;
-}
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
-}
 </style>

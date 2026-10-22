@@ -1,7 +1,10 @@
 <template>
-  <div class="page">
+  <div class="page course-page">
     <div class="page-header">
-      <h2>课程管理</h2>
+      <div>
+        <h2>{{ pageTitle }}</h2>
+        <p class="desc">筛选、管理课程内容与发布状态</p>
+      </div>
       <el-button
         v-permission="'course:add'"
         type="primary"
@@ -11,85 +14,113 @@
       </el-button>
     </div>
 
-    <el-form :model="queryParams" inline class="search-form">
-      <el-form-item label="课程名称">
-        <el-input v-model="queryParams.name" clearable placeholder="请输入课程名称" />
-      </el-form-item>
-      <el-form-item label="分类">
-        <el-select v-model="queryParams.category" clearable placeholder="请选择分类">
-          <el-option v-for="item in categories" :key="item" :label="item" :value="item" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="教师">
-        <el-input v-model="queryParams.teacher" clearable placeholder="教师姓名" />
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-select v-model="queryParams.status" clearable placeholder="状态">
-          <el-option label="上架" value="1" />
-          <el-option label="下架" value="0" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="创建时间">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          value-format="YYYY-MM-DD"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-        />
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-        <el-button @click="handleReset">重置</el-button>
-      </el-form-item>
-    </el-form>
+    <div class="search-panel">
+      <el-form :model="queryParams" inline class="search-form">
+        <el-form-item label="课程名称">
+          <el-input
+            v-model="queryParams.name"
+            clearable
+            placeholder="请输入课程名称"
+          />
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-select
+            v-model="queryParams.category"
+            clearable
+            placeholder="请选择分类"
+          >
+            <el-option
+              v-for="item in categories"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="教师">
+          <el-input
+            v-model="queryParams.teacher"
+            clearable
+            placeholder="教师姓名"
+          />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select
+            v-model="queryParams.status"
+            clearable
+            placeholder="状态"
+          >
+            <el-option label="上架" value="1" />
+            <el-option label="下架" value="0" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="创建时间">
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            value-format="YYYY-MM-DD"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+          />
+        </el-form-item>
+        <el-form-item class="search-actions">
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
 
-    <BaseTable
-      :data="list"
-      :columns="columns"
-      :loading="loading"
-      :action-width="280"
-    >
-      <template #cover="{ row }">
-        <el-image
-          :src="row.cover"
-          style="width: 72px; height: 40px"
-          fit="cover"
-        />
-      </template>
-      <template #status="{ row }">
-        <el-tag :type="row.status === 1 ? 'success' : 'info'">
-          {{ row.status === 1 ? '上架' : '下架' }}
-        </el-tag>
-      </template>
-      <template #actions="{ row }">
-        <el-button link type="primary" @click="goDetail(row)">查看</el-button>
-        <el-button
-          v-permission="'course:edit'"
-          link
-          type="primary"
-          @click="openEdit(row)"
-        >
-          编辑
-        </el-button>
-        <el-button
-          v-permission="'course:publish'"
-          link
-          type="warning"
-          @click="toggleStatus(row)"
-        >
-          {{ row.status === 1 ? '下架' : '上架' }}
-        </el-button>
-        <el-button
-          v-permission="'course:delete'"
-          link
-          type="danger"
-          @click="handleDelete(row)"
-        >
-          删除
-        </el-button>
-      </template>
-    </BaseTable>
+    <div class="table-panel">
+      <BaseTable
+        :data="list"
+        :columns="columns"
+        :loading="loading"
+        :action-width="280"
+      >
+        <template #cover="{ row }">
+          <el-image
+            class="cover-thumb"
+            :src="row.cover"
+            fit="cover"
+          />
+        </template>
+        <template #status="{ row }">
+          <span
+            class="status-badge"
+            :class="row.status === 1 ? 'is-on' : 'is-off'"
+          >
+            {{ row.status === 1 ? '上架' : '下架' }}
+          </span>
+        </template>
+        <template #actions="{ row }">
+          <el-button link type="primary" @click="goDetail(row)">查看</el-button>
+          <el-button
+            v-permission="'course:edit'"
+            link
+            type="primary"
+            @click="openEdit(row)"
+          >
+            编辑
+          </el-button>
+          <el-button
+            v-permission="'course:publish'"
+            link
+            type="warning"
+            @click="toggleStatus(row)"
+          >
+            {{ row.status === 1 ? '下架' : '上架' }}
+          </el-button>
+          <el-button
+            v-permission="'course:delete'"
+            link
+            type="danger"
+            @click="handleDelete(row)"
+          >
+            删除
+          </el-button>
+        </template>
+      </BaseTable>
+    </div>
 
     <div class="pagination">
       <el-pagination
@@ -98,6 +129,7 @@
         :total="total"
         :page-sizes="[10, 20, 50]"
         layout="total, sizes, prev, pager, next"
+        background
         @size-change="getList"
         @current-change="getList"
       />
@@ -112,11 +144,13 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import BaseTable from '@/components/BaseTable.vue'
 import CourseForm from './components/CourseForm.vue'
+import { useUserStore } from '@/stores/user'
+import { ROLES } from '@/constants/roles'
 import {
   getCourseList,
   deleteCourse,
@@ -125,6 +159,7 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const list = ref([])
 const total = ref(0)
@@ -132,6 +167,12 @@ const formVisible = ref(false)
 const current = ref(null)
 const dateRange = ref([])
 const categories = ['前端', 'AI', 'Python', '算法', 'Java']
+
+const pageTitle = computed(() =>
+  userStore.roles.includes(ROLES.TEACHER) && !userStore.roles.includes(ROLES.ADMIN)
+    ? '我的课程'
+    : '课程管理'
+)
 
 const queryParams = reactive({
   name: '',
@@ -234,31 +275,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  background: #fff;
-  padding: 16px;
-  border-radius: 4px;
+.course-page :deep(.el-table) {
+  --el-table-bg-color: transparent;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.search-form {
-  margin-bottom: 8px;
-}
-
-.pagination {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+.search-actions :deep(.el-form-item__content) {
+  gap: 8px;
 }
 </style>

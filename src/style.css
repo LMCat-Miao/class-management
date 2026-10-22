@@ -1,3 +1,41 @@
+:root {
+  /* Brand — indigo / blue */
+  --cm-primary: #3b5bdb;
+  --cm-primary-hover: #364fc7;
+  --cm-primary-soft: #edf2ff;
+  --cm-primary-muted: #748ffc;
+  --cm-accent: #15aabf;
+
+  /* Neutrals */
+  --cm-bg: #eef2f7;
+  --cm-bg-elevated: #f8fafc;
+  --cm-surface: #ffffff;
+  --cm-border: #e2e8f0;
+  --cm-border-strong: #cbd5e1;
+  --cm-text: #1e293b;
+  --cm-text-secondary: #64748b;
+  --cm-text-muted: #94a3b8;
+
+  /* Layout */
+  --cm-header-h: 60px;
+  --cm-sidebar-w: 220px;
+  --cm-radius: 12px;
+  --cm-radius-sm: 8px;
+  --cm-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.04);
+  --cm-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+
+  /* Element Plus theme bridge */
+  --el-color-primary: var(--cm-primary);
+  --el-color-primary-light-3: #5c7cfa;
+  --el-color-primary-light-5: #91a7ff;
+  --el-color-primary-light-7: #bac8ff;
+  --el-color-primary-light-8: #dbe4ff;
+  --el-color-primary-light-9: var(--cm-primary-soft);
+  --el-color-primary-dark-2: var(--cm-primary-hover);
+  --el-border-radius-base: 8px;
+  --el-font-family: 'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif;
+}
+
 html,
 body,
 #app {
@@ -7,12 +45,132 @@ body,
 }
 
 body {
-  font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: #303133;
-  background: #f5f7fa;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif;
+  color: var(--cm-text);
+  background: var(--cm-bg);
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Shared page shell — applies to list/detail pages */
+.page {
+  background: var(--cm-surface);
+  padding: 20px 22px;
+  border-radius: var(--cm-radius);
+  box-shadow: var(--cm-shadow);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  gap: 12px;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--cm-text);
+}
+
+.page-header .desc,
+.page .desc {
+  margin: 4px 0 0;
+  color: var(--cm-text-secondary);
+  font-size: 13px;
+}
+
+.search-panel {
+  background: var(--cm-bg-elevated);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius-sm);
+  padding: 16px 16px 4px;
+  margin-bottom: 16px;
+}
+
+.search-panel .el-form-item {
+  margin-bottom: 12px;
+}
+
+.search-panel .el-input,
+.search-panel .el-select {
+  width: 180px;
+}
+
+.search-panel .el-date-editor {
+  width: 260px;
+}
+
+.table-panel {
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius-sm);
+  overflow: hidden;
+}
+
+.pagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cover-thumb {
+  width: 72px;
+  height: 42px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--cm-border);
+  display: block;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.status-badge.is-on {
+  color: #0f766e;
+  background: #ccfbf1;
+}
+
+.status-badge.is-off {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+/* Base table polish */
+.cm-table.el-table {
+  --el-table-header-bg-color: #f1f5f9;
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: #f8fafc;
+  --el-table-border-color: #eef2f6;
+  --el-table-text-color: var(--cm-text);
+  font-size: 13.5px;
+}
+
+.cm-table.el-table th.el-table__cell {
+  font-weight: 650;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+
+.cm-table.el-table .el-table__cell {
+  padding: 14px 0;
+}
+
+.cm-table.el-table td.el-table__cell {
+  border-bottom-color: #f1f5f9;
 }

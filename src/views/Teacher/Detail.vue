@@ -53,15 +53,9 @@ onMounted(loadDetail)
 </script>
 
 <style scoped>
-.page {
-  background: #fff;
-  padding: 16px;
-  border-radius: 4px;
-}
 .page-header h2 {
   display: inline;
   margin-left: 8px;
-  font-size: 18px;
 }
 p {
   margin: 8px 0;

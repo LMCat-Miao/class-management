@@ -18,15 +18,20 @@ import Sidebar from '@/components/Sidebar.vue'
 <style scoped>
 .layout {
   height: 100vh;
+  background: var(--cm-bg);
 }
 
 .layout-body {
-  height: calc(100vh - 60px);
+  height: calc(100vh - var(--cm-header-h));
   overflow: hidden;
 }
 
 .layout-main {
-  background: #f5f7fa;
+  background:
+    radial-gradient(1200px 400px at 0% 0%, rgba(59, 91, 219, 0.06), transparent 55%),
+    radial-gradient(900px 360px at 100% 0%, rgba(21, 170, 191, 0.05), transparent 50%),
+    var(--cm-bg);
   overflow: auto;
+  padding: 20px;
 }
 </style>

@@ -29,24 +29,4 @@ const activeTab = ref('intro')
 </script>
 
 <style scoped>
-.page {
-  background: #fff;
-  padding: 16px;
-  border-radius: 4px;
-}
-
-.page-header {
-  margin-bottom: 16px;
-}
-
-.page-header h2 {
-  margin: 0 0 6px;
-  font-size: 18px;
-}
-
-.desc {
-  margin: 0;
-  color: #909399;
-  font-size: 13px;
-}
 </style>
