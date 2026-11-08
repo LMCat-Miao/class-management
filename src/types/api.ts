@@ -2,6 +2,8 @@ export interface ApiResult<T = unknown> {
   code: number
   data: T
   message: string
+  /** 稳定机器可读错误标识，如 ACCOUNT_DISABLED；成功响应通常无此字段 */
+  error?: string
 }
 
 export interface PageResult<T> {
@@ -28,6 +30,7 @@ export interface UserInfo {
 
 export interface LoginResult {
   accessToken: string
+  /** @deprecated 后端已不再返回；保留可选字段仅兼容旧类型引用 */
   refreshToken?: string
   token?: string
   userInfo: UserInfo

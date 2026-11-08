@@ -1,9 +1,22 @@
+"""
+教师管理（4.3.2.3）：MySQL teachers；统计来自 MySQL courses。
+仅 admin。
+"""
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.core.response import fail, ok
-from app.data.store import COURSES, TEACHERS, next_teacher_id, paginate
+from app.db.database import get_db
 from app.deps import require_roles
+from app.services.teacher_query import get_teacher_by_id, list_teachers_page
+from app.services.teacher_write import (
+    TeacherWriteError,
+    create_teacher as create_teacher_db,
+    delete_teacher as delete_teacher_db,
+    update_teacher as update_teacher_db,
+)
 
 router = APIRouter(prefix="/teacher", tags=["teacher"])
 
@@ -17,31 +30,6 @@ class TeacherBody(BaseModel):
     status: int | None = 1
 
 
-def enrich_teacher(teacher: dict) -> dict:
-    related = [c for c in COURSES if c.get("teacherId") == teacher["id"]]
-    avg = (
-        round(sum(c["completionRate"] for c in related) / len(related))
-        if related
-        else teacher.get("avgCompletion", 0)
-    )
-    return {
-        **teacher,
-        "courseCount": len(related),
-        "courses": [
-            {
-                "id": c["id"],
-                "name": c["name"],
-                "studentCount": c["studentCount"],
-                "completionRate": c["completionRate"],
-            }
-            for c in related
-        ],
-        "studentCount": sum(c["studentCount"] for c in related)
-        or teacher.get("studentCount", 0),
-        "avgCompletion": avg,
-    }
-
-
 @router.get("/list")
 def list_teachers(
     name: str | None = None,
@@ -49,43 +37,40 @@ def list_teachers(
     page: int = 1,
     pageSize: int = 10,
     user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
 ):
     _ = user
-    items = [enrich_teacher(t) for t in TEACHERS]
-    if name:
-        items = [t for t in items if name in t.get("name", "")]
-    if status is not None and status != "":
-        items = [t for t in items if str(t.get("status")) == str(status)]
-    return ok(paginate(items, page, pageSize))
+    data = list_teachers_page(
+        db, name=name, status=status, page=page, page_size=pageSize
+    )
+    return ok(data)
 
 
 @router.get("/{teacher_id}")
-def teacher_detail(teacher_id: int, user: dict = Depends(require_roles("admin"))):
+def teacher_detail(
+    teacher_id: int,
+    user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
     _ = user
-    teacher = next((t for t in TEACHERS if t["id"] == teacher_id), None)
+    teacher = get_teacher_by_id(db, teacher_id)
     if not teacher:
         return fail("教师不存在", status_code=404)
-    return ok(enrich_teacher(teacher))
+    return ok(teacher)
 
 
 @router.post("")
-def create_teacher(body: TeacherBody, user: dict = Depends(require_roles("admin"))):
+def create_teacher(
+    body: TeacherBody,
+    user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
     _ = user
-    item = {
-        "id": next_teacher_id(),
-        "name": body.name,
-        "avatar": body.avatar or "",
-        "phone": body.phone or "",
-        "email": body.email or "",
-        "title": body.title or "讲师",
-        "courseCount": 0,
-        "studentCount": 0,
-        "avgCompletion": 0,
-        "status": body.status if body.status is not None else 1,
-        "courseIds": [],
-    }
-    TEACHERS.insert(0, item)
-    return ok(enrich_teacher(item))
+    try:
+        data = create_teacher_db(db, body)
+    except TeacherWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+    return ok(data)
 
 
 @router.put("/{teacher_id}")
@@ -93,24 +78,26 @@ def update_teacher(
     teacher_id: int,
     body: TeacherBody,
     user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
 ):
     _ = user
-    index = next((i for i, t in enumerate(TEACHERS) if t["id"] == teacher_id), -1)
-    if index < 0:
-        return fail("教师不存在", status_code=404)
-    TEACHERS[index] = {
-        **TEACHERS[index],
-        **body.model_dump(exclude_unset=True),
-        "id": teacher_id,
-    }
-    return ok(enrich_teacher(TEACHERS[index]))
+    payload = body.model_dump(exclude_unset=True)
+    try:
+        data = update_teacher_db(db, teacher_id, payload)
+    except TeacherWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+    return ok(data)
 
 
 @router.delete("/{teacher_id}")
-def delete_teacher(teacher_id: int, user: dict = Depends(require_roles("admin"))):
+def delete_teacher(
+    teacher_id: int,
+    user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
     _ = user
-    index = next((i for i, t in enumerate(TEACHERS) if t["id"] == teacher_id), -1)
-    if index < 0:
-        return fail("教师不存在", status_code=404)
-    TEACHERS.pop(index)
+    try:
+        delete_teacher_db(db, teacher_id)
+    except TeacherWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
     return ok(True)

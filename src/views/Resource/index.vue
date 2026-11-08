@@ -41,11 +41,20 @@
       </el-form-item>
     </el-form>
 
-    <BaseTable :data="list" :columns="columns" :loading="loading" :action-width="120">
+    <BaseTable :data="list" :columns="columns" :loading="loading" :action-width="160">
       <template #status="{ row }">
         <el-tag type="success">{{ row.status === 1 ? '正常' : '停用' }}</el-tag>
       </template>
       <template #actions="{ row }">
+        <el-button
+          v-permission="'resource:view'"
+          link
+          type="primary"
+          :loading="downloadingId === row.id"
+          @click="handleDownload(row)"
+        >
+          下载
+        </el-button>
         <el-button
           v-permission="'resource:delete'"
           link
@@ -102,7 +111,12 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import BaseTable from '@/components/BaseTable.vue'
-import { getResourceList, uploadResource, deleteResource } from '@/api/resource'
+import {
+  getResourceList,
+  uploadResource,
+  deleteResource,
+  downloadResource
+} from '@/api/resource'
 import { getCourseList } from '@/api/course'
 
 const loading = ref(false)
@@ -111,6 +125,7 @@ const total = ref(0)
 const uploadVisible = ref(false)
 const uploading = ref(false)
 const progress = ref(0)
+const downloadingId = ref(null)
 const courseOptions = ref([])
 const selectedFile = ref(null)
 const types = ['PDF', 'PPT', 'Word', 'Excel', '图片', '视频', '其他']
@@ -201,6 +216,18 @@ async function handleUpload() {
     ElMessage.error(error.message || '上传失败')
   } finally {
     uploading.value = false
+  }
+}
+
+async function handleDownload(row) {
+  downloadingId.value = row.id
+  try {
+    await downloadResource(row.id)
+    ElMessage.success('已开始下载')
+  } catch (error) {
+    ElMessage.error(error.message || '下载失败')
+  } finally {
+    downloadingId.value = null
   }
 }
 

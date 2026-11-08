@@ -1,42 +1,12 @@
-"""In-memory data store aligned with frontend mock/data.js."""
+"""
+历史演示常量（仅供 migrate_* 等一次性脚本导入）。
 
-from copy import deepcopy
+正式运行时业务数据在 MySQL；权限常量在 app.core.permissions。
+本模块导入时不做密码哈希等副作用。
+"""
 
-from app.core.security import hash_password
-
-ADMIN_PERMISSIONS = [
-    "course:view",
-    "course:add",
-    "course:edit",
-    "course:delete",
-    "course:publish",
-    "teacher:view",
-    "teacher:add",
-    "teacher:edit",
-    "teacher:delete",
-    "student:view",
-    "student:edit",
-    "student:status",
-    "resource:view",
-    "resource:upload",
-    "resource:delete",
-    "dashboard:view",
-    "ai:intro",
-    "ai:parse",
-    "ai:quiz",
-]
-
-TEACHER_PERMISSIONS = [
-    "dashboard:view",
-    "course:view",
-    "student:view",
-    "student:edit",
-    "resource:view",
-    "resource:upload",
-    "ai:intro",
-    "ai:parse",
-    "ai:quiz",
-]
+# 兼容旧脚本：仍可从本模块拿到权限常量（权威定义在 core.permissions）
+from app.core.permissions import ADMIN_PERMISSIONS, TEACHER_PERMISSIONS
 
 TEACHERS: list[dict] = [
     {
@@ -386,15 +356,12 @@ RESOURCES: list[dict] = [
     },
 ]
 
-# password for both demo accounts: 123456
-_PASSWORD_HASH = hash_password("123456")
-
+# 仅作历史对照；真实密码哈希在 MySQL（由 seed_data 写入），此处不再导入时 hash_password
 USERS: dict[str, dict] = {
     "admin": {
         "id": 1,
         "username": "admin",
         "nickname": "系统管理员",
-        "password_hash": _PASSWORD_HASH,
         "role": "admin",
         "roles": ["admin"],
         "permissions": ADMIN_PERMISSIONS,
@@ -403,61 +370,9 @@ USERS: dict[str, dict] = {
         "id": 2,
         "username": "teacher",
         "nickname": "张老师",
-        "password_hash": _PASSWORD_HASH,
         "role": "teacher",
         "roles": ["teacher"],
         "permissions": TEACHER_PERMISSIONS,
         "teacherId": 1,
     },
 }
-
-_course_seq = len(COURSES) + 1
-_teacher_seq = len(TEACHERS) + 1
-_student_seq = len(STUDENTS) + 1
-_resource_seq = len(RESOURCES) + 1
-
-
-def next_course_id() -> int:
-    global _course_seq
-    value = _course_seq
-    _course_seq += 1
-    return value
-
-
-def next_teacher_id() -> int:
-    global _teacher_seq
-    value = _teacher_seq
-    _teacher_seq += 1
-    return value
-
-
-def next_student_id() -> int:
-    global _student_seq
-    value = _student_seq
-    _student_seq += 1
-    return value
-
-
-def next_resource_id() -> int:
-    global _resource_seq
-    value = _resource_seq
-    _resource_seq += 1
-    return value
-
-
-def public_user(user: dict) -> dict:
-    data = deepcopy(user)
-    data.pop("password_hash", None)
-    return data
-
-
-def paginate(items: list, page: int = 1, page_size: int = 10) -> dict:
-    page = max(int(page or 1), 1)
-    page_size = max(int(page_size or 10), 1)
-    start = (page - 1) * page_size
-    return {
-        "list": items[start : start + page_size],
-        "total": len(items),
-        "page": page,
-        "pageSize": page_size,
-    }

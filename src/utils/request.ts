@@ -8,6 +8,31 @@ const request: AxiosInstance = axios.create({
   timeout: 15000
 })
 
+/** 防止 401 / 账号停用处理重入 */
+let handlingSessionEnd = false
+
+function endSessionAndRedirectToLogin(): void {
+  if (handlingSessionEnd) return
+  handlingSessionEnd = true
+  clearAuth()
+  Promise.all([
+    import('@/stores/user'),
+    import('@/stores/permission'),
+    import('@/router')
+  ])
+    .then(([{ useUserStore }, { usePermissionStore }, routerMod]) => {
+      const router = routerMod.default
+      useUserStore().reset()
+      usePermissionStore().reset()
+      if (router.currentRoute.value.path !== '/login') {
+        router.push('/login')
+      }
+    })
+    .finally(() => {
+      handlingSessionEnd = false
+    })
+}
+
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getToken()
@@ -32,16 +57,27 @@ request.interceptors.response.use(
     return res
   },
   (error) => {
-    if (error.response?.status === 401) {
-      clearAuth()
-      import('@/router').then(({ default: router }) => {
-        if (router.currentRoute.value.path !== '/login') {
-          router.push('/login')
-        }
-      })
+    const status = error.response?.status
+    const data = error.response?.data
+    const errorCode =
+      data && typeof data === 'object' && 'error' in data
+        ? String((data as { error?: string }).error || '')
+        : ''
+
+    if (status === 401) {
+      // Token 无效 / 未登录
+      endSessionAndRedirectToLogin()
+    } else if (status === 403 && errorCode === 'ACCOUNT_DISABLED') {
+      // 教师停用等账号不可用：清会话；普通 403 不清除 Token
+      endSessionAndRedirectToLogin()
     }
+
     const message =
-      error.response?.data?.message || error.message || '网络异常'
+      (data && typeof data === 'object' && 'message' in data
+        ? String((data as { message?: string }).message || '')
+        : '') ||
+      error.message ||
+      '网络异常'
     return Promise.reject(new Error(message))
   }
 )

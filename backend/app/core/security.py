@@ -24,17 +24,17 @@ def create_token(data: dict[str, Any], expires_delta: timedelta) -> str:
     return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
 
 
-def create_access_token(username: str, role: str) -> str:
+def create_access_token(user_id: int, role: str) -> str:
+    """
+    签发 Access Token。
+
+    sub 使用数据库 users.id（字符串形式写入 JWT，解析时再转回 int），
+    不再使用 username，避免改名导致令牌失效。
+    type 固定为 access；本项目不签发 / 不消费 refresh Token。
+    """
     return create_token(
-        {"sub": username, "role": role, "type": "access"},
+        {"sub": str(user_id), "role": role, "type": "access"},
         timedelta(minutes=settings.access_token_expire_minutes),
-    )
-
-
-def create_refresh_token(username: str, role: str) -> str:
-    return create_token(
-        {"sub": username, "role": role, "type": "refresh"},
-        timedelta(days=settings.refresh_token_expire_days),
     )
 
 

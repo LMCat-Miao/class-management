@@ -24,7 +24,6 @@ export function mockLogin(data) {
 
   return ok({
     accessToken: `mock-access-${username}-${Date.now()}`,
-    refreshToken: `mock-refresh-${username}-${Date.now()}`,
     userInfo
   })
 }

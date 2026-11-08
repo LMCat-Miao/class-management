@@ -1,11 +1,24 @@
-from datetime import date
+"""
+学生管理（4.3.3.2）：MySQL students。
+
+- admin：全部读写
+- teacher：仅通过 enrollments → courses.teacher_id 查看自己课程下学生；无写权限
+"""
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.core.response import fail, ok
-from app.data.store import STUDENTS, next_student_id, paginate
-from app.deps import get_current_user
+from app.db.database import get_db
+from app.deps import get_current_user, require_roles
+from app.services.student_query import StudentQueryError, get_student_by_id, list_students_page
+from app.services.student_write import (
+    StudentWriteError,
+    create_student,
+    update_student,
+    update_student_status,
+)
 
 router = APIRouter(prefix="/student", tags=["student"])
 
@@ -17,6 +30,11 @@ class StudentBody(BaseModel):
     className: str | None = ""
     phone: str | None = ""
     status: int | None = 1
+    progress: int | None = None
+    avgCompletion: int | None = None
+    learnCourseCount: int | None = None
+    finishCourseCount: int | None = None
+    recentCourses: list[str] | None = None
 
 
 class StatusBody(BaseModel):
@@ -32,79 +50,78 @@ def list_students(
     page: int = 1,
     pageSize: int = 10,
     user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    _ = user
-    items = list(STUDENTS)
-    if name:
-        items = [s for s in items if name in s.get("name", "")]
-    if studentNo:
-        items = [s for s in items if studentNo in s.get("studentNo", "")]
-    if className:
-        items = [s for s in items if className in s.get("className", "")]
-    if status is not None and status != "":
-        items = [s for s in items if str(s.get("status")) == str(status)]
-    return ok(paginate(items, page, pageSize))
+    try:
+        data = list_students_page(
+            db,
+            user=user,
+            name=name,
+            student_no=studentNo,
+            class_name=className,
+            status=status,
+            page=page,
+            page_size=pageSize,
+        )
+    except StudentQueryError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+    return ok(data)
 
 
 @router.get("/{student_id}")
-def student_detail(student_id: int, user: dict = Depends(get_current_user)):
-    _ = user
-    student = next((s for s in STUDENTS if s["id"] == student_id), None)
+def student_detail(
+    student_id: int,
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        student = get_student_by_id(db, student_id, user=user)
+    except StudentQueryError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
     if not student:
         return fail("学生不存在", status_code=404)
     return ok(student)
 
 
 @router.post("")
-def create_student(body: StudentBody, user: dict = Depends(get_current_user)):
+def create_student_api(
+    body: StudentBody,
+    user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
+):
     _ = user
-    new_id = next_student_id()
-    item = {
-        "id": new_id,
-        "name": body.name,
-        "avatar": body.avatar or "",
-        "studentNo": body.studentNo or f"S{new_id}",
-        "className": body.className or "",
-        "phone": body.phone or "",
-        "learnCourseCount": 0,
-        "finishCourseCount": 0,
-        "progress": 0,
-        "status": body.status if body.status is not None else 1,
-        "registeredAt": date.today().isoformat(),
-        "recentCourses": [],
-        "avgCompletion": 0,
-    }
-    STUDENTS.insert(0, item)
+    try:
+        item = create_student(db, body)
+    except StudentWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
     return ok(item)
 
 
 @router.put("/{student_id}")
-def update_student(
+def update_student_api(
     student_id: int,
     body: StudentBody,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
 ):
     _ = user
-    index = next((i for i, s in enumerate(STUDENTS) if s["id"] == student_id), -1)
-    if index < 0:
-        return fail("学生不存在", status_code=404)
-    STUDENTS[index] = {
-        **STUDENTS[index],
-        **body.model_dump(exclude_unset=True),
-        "id": student_id,
-    }
-    return ok(STUDENTS[index])
+    try:
+        item = update_student(db, student_id, body.model_dump(exclude_unset=True))
+    except StudentWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+    return ok(item)
 
 
 @router.put("/{student_id}/status")
 def update_status(
     student_id: int,
     body: StatusBody,
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
 ):
     _ = user
-    student = next((s for s in STUDENTS if s["id"] == student_id), None)
-    if not student:
-        return fail("学生不存在", status_code=404)
-    student["status"] = int(body.status)
-    return ok(student)
+    try:
+        item = update_student_status(db, student_id, body.status)
+    except StudentWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+    return ok(item)

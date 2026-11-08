@@ -1,8 +1,12 @@
 <template>
-  <el-container class="layout">
-    <Header />
+  <el-container class="layout" direction="vertical">
+    <el-header class="layout-header" height="68px">
+      <Header />
+    </el-header>
     <el-container class="layout-body">
-      <Sidebar />
+      <el-aside class="layout-aside" width="232px">
+        <Sidebar />
+      </el-aside>
       <el-main class="layout-main">
         <router-view />
       </el-main>
@@ -21,17 +25,40 @@ import Sidebar from '@/components/Sidebar.vue'
   background: var(--cm-bg);
 }
 
+.layout-header {
+  padding: 0;
+  height: var(--cm-header-h) !important;
+  flex-shrink: 0;
+  z-index: 30;
+}
+
 .layout-body {
-  height: calc(100vh - var(--cm-header-h));
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
+.layout-aside {
+  height: 100%;
+  overflow: hidden;
+  background: var(--cm-sidebar-bg);
+  flex-shrink: 0;
+}
+
 .layout-main {
-  background:
-    radial-gradient(1200px 400px at 0% 0%, rgba(59, 91, 219, 0.06), transparent 55%),
-    radial-gradient(900px 360px at 100% 0%, rgba(21, 170, 191, 0.05), transparent 50%),
-    var(--cm-bg);
+  background: var(--cm-bg);
   overflow: auto;
-  padding: 20px;
+  padding: 24px;
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .layout-aside {
+    width: 72px !important;
+  }
+
+  .layout-main {
+    padding: 16px;
+  }
 }
 </style>

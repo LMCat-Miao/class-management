@@ -29,7 +29,7 @@
       </el-form-item>
     </el-form>
 
-    <BaseTable :data="list" :columns="columns" :loading="loading" :action-width="240">
+    <BaseTable :data="list" :columns="columns" :loading="loading" :action-width="280">
       <template #progress="{ row }">
         <el-progress :percentage="row.progress" :stroke-width="10" />
       </template>
@@ -40,6 +40,14 @@
       </template>
       <template #actions="{ row }">
         <el-button link type="primary" @click="goDetail(row)">查看</el-button>
+        <el-button
+          v-if="isAdmin"
+          link
+          type="primary"
+          @click="goDetail(row)"
+        >
+          选课
+        </el-button>
         <el-button
           v-permission="'student:edit'"
           link
@@ -76,14 +84,18 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import BaseTable from '@/components/BaseTable.vue'
 import StudentForm from './components/StudentForm.vue'
 import { getStudentList, updateStudentStatus } from '@/api/student'
+import { useUserStore } from '@/stores/user'
+import { ROLES } from '@/constants/roles'
 
 const router = useRouter()
+const userStore = useUserStore()
+const isAdmin = computed(() => userStore.roles.includes(ROLES.ADMIN))
 const loading = ref(false)
 const list = ref([])
 const total = ref(0)

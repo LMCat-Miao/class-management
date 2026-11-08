@@ -1,41 +1,26 @@
-from datetime import datetime
+"""
+课程资源（4.3.3.4）：MySQL resources + 真实文件落盘。
+"""
+
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
 
 from app.core.response import fail, ok
-from app.data.store import COURSES, RESOURCES, next_resource_id, paginate
+from app.db.database import get_db
 from app.deps import get_current_user, require_roles
+from app.services.resource_access import ResourceAccessError
+from app.services.resource_query import list_resources_page
+from app.services.resource_write import (
+    ResourceWriteError,
+    delete_resource,
+    resolve_download_path,
+    upload_resource,
+)
 
 router = APIRouter(prefix="/resource", tags=["resource"])
-
-
-EXT_MAP = {
-    "pdf": "PDF",
-    "ppt": "PPT",
-    "pptx": "PPT",
-    "doc": "Word",
-    "docx": "Word",
-    "xls": "Excel",
-    "xlsx": "Excel",
-    "png": "图片",
-    "jpg": "图片",
-    "jpeg": "图片",
-    "mp4": "视频",
-    "mov": "视频",
-}
-
-
-def ext_type(name: str) -> str:
-    ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
-    return EXT_MAP.get(ext, "其他")
-
-
-def format_size(size: int) -> str:
-    if size < 1024:
-        return f"{size}B"
-    if size < 1024 * 1024:
-        return f"{size / 1024:.1f}KB"
-    return f"{size / 1024 / 1024:.1f}MB"
 
 
 @router.get("/list")
@@ -46,49 +31,72 @@ def list_resources(
     page: int = 1,
     pageSize: int = 10,
     user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    _ = user
-    items = list(RESOURCES)
-    if name:
-        items = [r for r in items if name in r.get("name", "")]
-    if type:
-        items = [r for r in items if r.get("type") == type]
-    if courseId:
-        items = [r for r in items if str(r.get("courseId")) == str(courseId)]
-    return ok(paginate(items, page, pageSize))
+    try:
+        data = list_resources_page(
+            db,
+            user=user,
+            name=name,
+            type_filter=type,
+            course_id_raw=courseId,
+            page=page,
+            page_size=pageSize,
+        )
+    except ResourceAccessError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+    return ok(data)
 
 
 @router.post("/upload")
-async def upload_resource(
+async def upload_resource_api(
     file: UploadFile = File(...),
     courseId: int = Form(...),
     user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
-    course = next((c for c in COURSES if c["id"] == courseId), None)
-    content = await file.read()
-    item = {
-        "id": next_resource_id(),
-        "name": file.filename or f"resource-{next_resource_id()}",
-        "type": ext_type(file.filename or ""),
-        "courseId": courseId,
-        "courseName": course["name"] if course else "未分配课程",
-        "size": format_size(len(content)),
-        "uploader": user.get("nickname") or user.get("username") or "当前用户",
-        "uploadedAt": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "status": 1,
-    }
-    RESOURCES.insert(0, item)
+    try:
+        item = await upload_resource(db, user=user, file=file, course_id=int(courseId))
+    except ResourceAccessError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+    except ResourceWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
     return ok(item)
 
 
+@router.get("/{resource_id}/download")
+def download_resource(
+    resource_id: int,
+    user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        path, filename = resolve_download_path(db, user, resource_id)
+    except ResourceWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
+
+    # RFC 5987 处理中文文件名；不向客户端暴露服务器绝对路径
+    quoted = quote(filename)
+    headers = {
+        "Content-Disposition": f"attachment; filename*=UTF-8''{quoted}",
+    }
+    return FileResponse(
+        path=str(path),
+        filename=filename,
+        headers=headers,
+        media_type="application/octet-stream",
+    )
+
+
 @router.delete("/{resource_id}")
-def delete_resource(
+def delete_resource_api(
     resource_id: int,
     user: dict = Depends(require_roles("admin")),
+    db: Session = Depends(get_db),
 ):
     _ = user
-    index = next((i for i, r in enumerate(RESOURCES) if r["id"] == resource_id), -1)
-    if index < 0:
-        return fail("资源不存在", status_code=404)
-    RESOURCES.pop(index)
+    try:
+        delete_resource(db, resource_id)
+    except ResourceWriteError as exc:
+        return fail(exc.message, code=exc.code, status_code=exc.status_code)
     return ok(True)

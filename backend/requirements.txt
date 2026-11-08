@@ -6,3 +6,10 @@ bcrypt==4.0.1
 python-multipart==0.0.20
 pydantic==2.11.1
 pydantic-settings==2.8.1
+# MySQL 持久化（第一阶段基础设施）
+SQLAlchemy==2.0.40
+PyMySQL==1.1.1
+alembic==1.15.2
+python-dotenv==1.1.0
+# FastAPI TestClient / 冒烟测试脚本使用
+httpx==0.28.1

@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, File, Form, UploadFile
+
 from pydantic import BaseModel
 
+from app.core.config import settings
 from app.core.response import fail, ok
 from app.deps import get_current_user
+from app.services.file_content import FileContentError, validate_pdf_bytes
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -42,11 +45,29 @@ async def parse_pdf(
     courseName: str = Form(""),
     user: dict = Depends(get_current_user),
 ):
+    """
+    PDF 解析（教学助手桩实现）：先做大小与真实 PDF 内容校验，再返回兼容字段。
+    不依赖客户端 Content-Type；不引入向量库/RAG。
+    """
     _ = user
-    file_name = file.filename or "课程资料.pdf"
+    file_name = (file.filename or "课程资料.pdf").strip() or "课程资料.pdf"
+    # 仅取 basename，防路径干扰
+    file_name = file_name.replace("\\", "/").rsplit("/", 1)[-1]
     if not file_name.lower().endswith(".pdf"):
-        return fail("仅支持 PDF 文件")
-    topic = courseName or file_name.replace(".pdf", "").replace(".PDF", "")
+        return fail("仅支持 PDF 文件", status_code=400)
+
+    max_bytes = int(settings.ai_pdf_max_bytes)
+    raw = await file.read(max_bytes + 1)
+    if len(raw) > max_bytes:
+        mb = max_bytes / (1024 * 1024)
+        limit_text = f"{mb:.0f}MB" if mb >= 1 else f"{max_bytes}B"
+        return fail(f"PDF 过大，上限 {limit_text}", status_code=400)
+    try:
+        validate_pdf_bytes(raw, require_eof=True)
+    except FileContentError as exc:
+        return fail(exc.message, status_code=exc.status_code)
+
+    topic = (courseName or "").strip() or file_name[:-4]
     return ok(
         {
             "fileName": file_name,

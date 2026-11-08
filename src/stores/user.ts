@@ -1,11 +1,6 @@
 import { defineStore } from 'pinia'
 import { login as loginApi, getUserInfo, logout as logoutApi } from '@/api/user'
-import {
-  setToken,
-  setRefreshToken,
-  clearAuth,
-  getToken
-} from '@/utils/auth'
+import { setToken, clearAuth, getToken } from '@/utils/auth'
 import type { LoginForm, UserInfo } from '@/types/api'
 
 interface UserState {
@@ -35,7 +30,6 @@ export const useUserStore = defineStore('user', {
       const res = await loginApi(form)
       const data = res.data
       setToken(data.accessToken || data.token || '')
-      if (data.refreshToken) setRefreshToken(data.refreshToken)
       sessionStorage.setItem('mock_username', form.username)
       this.setProfile(data.userInfo)
       return data
@@ -51,11 +45,15 @@ export const useUserStore = defineStore('user', {
       this.setProfile(res.data)
       return res.data
     },
+    /**
+     * 登出：调用后端确认（可选失败忽略）后清理本地会话。
+     * 服务端不撤销 JWT；本方法负责客户端 Token 与用户状态清理。
+     */
     async logout() {
       try {
         await logoutApi()
       } catch {
-        // ignore
+        // ignore（含已 401 的情况）
       }
       this.reset()
       clearAuth()
